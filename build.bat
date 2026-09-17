@@ -18,7 +18,7 @@ set DEPENDENCY_LIB=raylib.lib
 
 set SYSTEM_LIBS=User32.lib Gdi32.lib Shell32.lib Winmm.lib
 
-set SOURCE_FILES=..\source\main.cpp
+set SOURCE_FILES=..\source\main.cpp ..\source\game.cpp
 set OUTPUT_EXE=Trace.exe
 
 cl %FLAGS% %INCLUDE_PATH% %SOURCE_FILES% %SYSTEM_LIBS% ^
