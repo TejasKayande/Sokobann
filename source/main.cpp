@@ -6,6 +6,8 @@
 
 auto main(int argc, char **argv) -> int {
 
+    argc; argv; // NOTE(Tejas): Unused
+
     ::InitWindow(800, 600, "Trace");
     ::SetTargetFPS(60);
 

@@ -7,7 +7,12 @@
 #include <raylib.h>
 #include <vector>
 
-typedef ::Vector2 TileCoords;
+// NOTE(Tejas): Not sure yet where this belongs!!
+constexpr int TILE_SIZE = 32;
+
+struct Position {
+    int x, y;
+};
 
 enum class TileType : u8 {
     None = 0,
@@ -16,9 +21,8 @@ enum class TileType : u8 {
 };
 
 struct TileMap {
-    int width;
-    int height;
-    int tile_size;
+    u32 width;
+    u32 height;
     std::vector<TileType> tiles;
 };
 
@@ -27,21 +31,32 @@ struct Level {
 };
 
 struct Player {
-    ::Vector2 position;
-    TileCoords tile_coords;
+    Position position;
 };
 
 // NOTE(Tejas): This is temp
-enum GameCameraMode {
-    CameraMode_Free,
-    CameraMode_Fixed
+enum class GameCameraMode : u8 {
+    Free,
+    Fixed
+};
+
+struct GameCamera {
+    // NOTE(Tejas): maybe instead of this we can just store the data and build
+    // the Ray::Camera3D when needed
+    ::Camera3D cam;
+    GameCameraMode mode;
+
+    f32 speed;
+    f32 mouse_sensitivity;
+
+    f32 yaw;
+    f32 pitch;
 };
 
 struct Game {
     Player player;
     Level level;
-    ::Camera3D camera;
-    GameCameraMode camera_mode; // NOTE(Tejas): This is temp
+    GameCamera camera;
 };
 
 void game_init(Game *game);
