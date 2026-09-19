@@ -4,6 +4,12 @@
 #include <raylib.h>
 #include <raymath.h>
 
+// TODO(Tejas): Temp!
+static ::Shader G_lighting_shader;
+static int G_light_direction_location;
+static int G_light_color_location;
+static int G_ambient_color_location;
+
 static void get_tile_map_dimensions_in_pxl(TileMap *tile_map, u32 *out_width, u32 *out_height) {
 
     *out_width = tile_map->width * TILE_SIZE;
@@ -15,19 +21,19 @@ void game_init(Game *game) {
     game->player.position = { 1, 1 };
 
     // NOTE(Tejas): Test Map
-    game->level.tile_map.width = 10;
+    game->level.tile_map.width = 13;
     game->level.tile_map.height = 10;
     game->level.tile_map.tiles = {
-        TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+        TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
     };
 
     game->camera.mode = GameCameraMode::Free;
@@ -42,6 +48,19 @@ void game_init(Game *game) {
     game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
     game->camera.cam.fovy = 45.0f;
     game->camera.cam.projection = CAMERA_PERSPECTIVE;
+
+    G_lighting_shader = ::LoadShader("assets/shader/shadow.vs", "assets/shader/shadow.fs");
+    G_light_direction_location = ::GetShaderLocation(G_lighting_shader, "lightDirection");
+    G_light_color_location = ::GetShaderLocation(G_lighting_shader, "lightColor");
+    G_ambient_color_location = ::GetShaderLocation(G_lighting_shader, "ambientColor");
+
+    Vector3 light_direction = { 1.0f, -1.0f, 0.5f };
+    Vector3 light_color     = { 1.0f, 1.0f, 1.0f };
+    Vector3 ambient_color   = { 0.25f, 0.25f, 0.25f };
+
+    ::SetShaderValue(G_lighting_shader, G_light_direction_location, &light_direction, SHADER_UNIFORM_VEC3);
+    ::SetShaderValue(G_lighting_shader, G_light_color_location, &light_color, SHADER_UNIFORM_VEC3);
+    ::SetShaderValue(G_lighting_shader, G_ambient_color_location, &ambient_color, SHADER_UNIFORM_VEC3);
 }
 
 void game_update(Game *game, f32 delta_time) {
@@ -169,6 +188,8 @@ void game_render(Game *game) {
 
     ::BeginMode3D(game->camera.cam);
 
+    ::BeginShaderMode(G_lighting_shader);
+
     const f32 ground_height = 0.1f;
     const f32 wall_height = TILE_SIZE;
 
@@ -204,6 +225,8 @@ void game_render(Game *game) {
             }
         }
     }
+
+    ::EndShaderMode();
 
     ::Vector3 start_pos = { (f32)game->player.position.x * TILE_SIZE, 0.0f, (f32)game->player.position.y  * TILE_SIZE };
     ::Vector3 end_pos   = { (f32)game->player.position.x * TILE_SIZE, (f32)TILE_SIZE, (f32)game->player.position.y  * TILE_SIZE };
