@@ -11,13 +11,22 @@
 constexpr int TILE_SIZE = 32;
 
 struct Position {
-    int x, y;
+
+    uint x, y;
+
+    bool operator==(const Position &other) const {
+        return x == other.x && y == other.y;
+    }
+
+    bool operator!=(const Position &other) const {
+        return !(*this == other);
+    }
 };
 
 enum class TileType : u8 {
     None = 0,
     Wall,
-    Ground
+    Ground,
 };
 
 struct TileMap {
@@ -26,12 +35,20 @@ struct TileMap {
     std::vector<TileType> tiles;
 };
 
-struct Level {
-    TileMap tile_map;
-};
-
 struct Player {
     Position position;
+};
+
+struct Level {
+
+    TileMap tile_map;
+    
+    Player player;
+
+    // NOTE(Tejas): These are position where the player will spawn and where the
+    // player will have to stand to complete the level.
+    Position level_start;
+    Position level_end; 
 };
 
 // NOTE(Tejas): This is temp
@@ -54,7 +71,6 @@ struct GameCamera {
 };
 
 struct Game {
-    Player player;
     Level level;
     GameCamera camera;
 };

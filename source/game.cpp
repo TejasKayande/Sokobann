@@ -16,14 +16,31 @@ static void get_tile_map_dimensions_in_pxl(TileMap *tile_map, u32 *out_width, u3
     *out_height = tile_map->height * TILE_SIZE;
 }
 
-void game_init(Game *game) {
+static bool is_tile_walkable(TileMap *tile_map, Position pos) {
 
-    game->player.position = { 1, 1 };
+    if (pos.x < 0 || pos.x >= (i32)tile_map->width ||
+        pos.y < 0 || pos.y >= (i32)tile_map->height) {
+        return false;
+    }
 
-    // NOTE(Tejas): Test Map
-    game->level.tile_map.width = 13;
-    game->level.tile_map.height = 10;
-    game->level.tile_map.tiles = {
+    return tile_map->tiles[pos.y * tile_map->width + pos.x] == TileType::Ground;
+}
+
+static TileType get_tile_type_at(TileMap *tile_map, Position pos) {
+
+    if (pos.x < 0 || pos.x >= (i32)tile_map->width ||
+        pos.y < 0 || pos.y >= (i32)tile_map->height) {
+        return TileType::None;
+    }
+
+    return tile_map->tiles[pos.y * tile_map->width + pos.x];
+}
+
+static void load_sample_level(Level *level) {
+
+    level->tile_map.width = 13;
+    level->tile_map.height = 10;
+    level->tile_map.tiles = {
         TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
         TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
         TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
@@ -35,6 +52,121 @@ void game_init(Game *game) {
         TileType::Wall, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
         TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
     };
+
+    level->level_start = { 1, 1 };
+    level->level_end   = { 11, 8 };
+
+    level->player.position = level->level_start;
+}
+
+static void update_free_mode_camera(Game *game, f32 delta_time) {
+
+    // TODO(Tejas): Do something about the cursor.
+
+    ::Vector2 mouse_delta = ::GetMouseDelta();
+
+    game->camera.yaw   -= mouse_delta.x * game->camera.mouse_sensitivity;
+    game->camera.pitch -= mouse_delta.y * game->camera.mouse_sensitivity;
+
+    const f32 pitch_limit = PI / 2.0f - 0.01f;
+
+    if (game->camera.pitch > pitch_limit) game->camera.pitch = pitch_limit;
+    if (game->camera.pitch < -pitch_limit) game->camera.pitch = -pitch_limit;
+
+    ::Vector3 forward = {
+        cosf(game->camera.pitch) * sinf(game->camera.yaw),
+        sinf(game->camera.pitch),
+        cosf(game->camera.pitch) * cosf(game->camera.yaw)
+    };
+
+    ::Vector3 right = {
+        cosf(game->camera.yaw),
+        0.0f,
+        -sinf(game->camera.yaw)
+    };
+
+    ::Vector3 movement = { 0.0f, 0.0f, 0.0f };
+
+    if (::IsKeyDown(::KEY_W)) {
+        movement.x += forward.x;
+        movement.z += forward.z;
+    }
+
+    if (::IsKeyDown(::KEY_S)) {
+        movement.x -= forward.x;
+        movement.z -= forward.z;
+    }
+
+    if (::IsKeyDown(::KEY_D)) {
+        movement.x -= right.x;
+        movement.z -= right.z;
+    }
+
+    if (::IsKeyDown(::KEY_A)) {
+        movement.x += right.x;
+        movement.z += right.z;
+    }
+
+    if (::IsKeyDown(::KEY_SPACE))      movement.y += 1.0f;
+    if (::IsKeyDown(::KEY_LEFT_SHIFT)) movement.y -= 1.0f;
+
+    if (::Vector3Length(movement) > 0.0f) {
+
+        movement = ::Vector3Normalize(movement);
+        movement = ::Vector3Scale(movement, game->camera.speed * delta_time);
+
+        game->camera.cam.position = ::Vector3Add(game->camera.cam.position, movement);
+    }
+
+    game->camera.cam.target = ::Vector3Add(game->camera.cam.position, forward);
+    game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
+    game->camera.cam.projection = CAMERA_PERSPECTIVE;
+}
+
+static void update_fixed_mode_camera(Game *game, f32 delta_time) {
+
+    game->camera.yaw = 0.0f;
+    game->camera.pitch = -PI / 4.0f;
+
+    TileMap *tile_map = &game->level.tile_map;
+
+    u32 level_width, level_height;
+    get_tile_map_dimensions_in_pxl(tile_map, &level_width, &level_height);
+
+    game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 15.0f };
+    game->camera.cam.target = { level_width / 2.0f, 0.0f, level_height / 2.0f };
+    game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
+    game->camera.cam.projection = CAMERA_PERSPECTIVE;
+}
+
+static void update_camera(Game *game, f32 delta_time) {
+
+    if (::IsKeyPressed(::KEY_C)) {
+
+        if (game->camera.mode == GameCameraMode::Free) {
+            game->camera.mode = GameCameraMode::Fixed;
+        } else {
+            game->camera.mode = GameCameraMode::Free;
+            Vector3 direction = Vector3Subtract(game->camera.cam.target, game->camera.cam.position);
+            direction = Vector3Normalize(direction);
+
+            game->camera.yaw = atan2f(direction.x, direction.z);
+            game->camera.pitch = asinf(direction.y);
+        }
+    }
+
+    const f32 scroll = ::GetMouseWheelMove();
+    if (scroll != 0.0f) game->camera.cam.fovy -= scroll * 5.0f;
+    if (game->camera.cam.fovy < 20.0f) game->camera.cam.fovy = 20.0f;
+    if (game->camera.cam.fovy > 90.0f) game->camera.cam.fovy = 90.0f;
+
+    if (game->camera.mode == GameCameraMode::Free) update_free_mode_camera(game, delta_time);
+    else update_fixed_mode_camera(game, delta_time);
+}
+
+void game_init(Game *game) {
+
+    load_sample_level(&game->level);
 
     game->camera.mode = GameCameraMode::Free;
     game->camera.speed = TILE_SIZE * 8.0f;
@@ -65,106 +197,11 @@ void game_init(Game *game) {
 
 void game_update(Game *game, f32 delta_time) {
 
-    if (::IsKeyPressed(KEY_C)) {
+    update_camera(game, delta_time);
 
-        if (game->camera.mode == GameCameraMode::Free) {
-            game->camera.mode = GameCameraMode::Fixed;
-        } else {
-            game->camera.mode = GameCameraMode::Free;
-            Vector3 direction = Vector3Subtract(game->camera.cam.target, game->camera.cam.position);
-            direction = Vector3Normalize(direction);
-
-            game->camera.yaw = atan2f(direction.x, direction.z);
-            game->camera.pitch = asinf(direction.y);
-        }
-    }
-
-    const f32 scroll = ::GetMouseWheelMove();
-    if (scroll != 0.0f) game->camera.cam.fovy -= scroll * 5.0f;
-    if (game->camera.cam.fovy < 20.0f) game->camera.cam.fovy = 20.0f;
-    if (game->camera.cam.fovy > 90.0f) game->camera.cam.fovy = 90.0f;
-
-    if (game->camera.mode == GameCameraMode::Free) {
-
-        // TODO(Tejas): Do something about the cursor.
-
-        ::Vector2 mouse_delta = ::GetMouseDelta();
-
-        game->camera.yaw   -= mouse_delta.x * game->camera.mouse_sensitivity;
-        game->camera.pitch -= mouse_delta.y * game->camera.mouse_sensitivity;
-
-        const f32 pitch_limit = PI / 2.0f - 0.01f;
-
-        if (game->camera.pitch > pitch_limit) game->camera.pitch = pitch_limit;
-        if (game->camera.pitch < -pitch_limit) game->camera.pitch = -pitch_limit;
-
-        ::Vector3 forward = {
-            cosf(game->camera.pitch) * sinf(game->camera.yaw),
-            sinf(game->camera.pitch),
-            cosf(game->camera.pitch) * cosf(game->camera.yaw)
-        };
-
-        ::Vector3 right = {
-            cosf(game->camera.yaw),
-            0.0f,
-            -sinf(game->camera.yaw)
-        };
-
-        ::Vector3 movement = { 0.0f, 0.0f, 0.0f };
-
-        if (::IsKeyDown(::KEY_W)) {
-            movement.x += forward.x;
-            movement.z += forward.z;
-        }
-
-        if (::IsKeyDown(::KEY_S)) {
-            movement.x -= forward.x;
-            movement.z -= forward.z;
-        }
-
-        if (::IsKeyDown(::KEY_D)) {
-            movement.x -= right.x;
-            movement.z -= right.z;
-        }
-
-        if (::IsKeyDown(::KEY_A)) {
-            movement.x += right.x;
-            movement.z += right.z;
-        }
-
-        if (::IsKeyDown(::KEY_SPACE))      movement.y += 1.0f;
-        if (::IsKeyDown(::KEY_LEFT_SHIFT)) movement.y -= 1.0f;
-
-        if (::Vector3Length(movement) > 0.0f) {
-
-            movement = ::Vector3Normalize(movement);
-            movement = ::Vector3Scale(movement, game->camera.speed * delta_time);
-
-            game->camera.cam.position = ::Vector3Add(game->camera.cam.position, movement);
-        }
-
-        game->camera.cam.target = ::Vector3Add(game->camera.cam.position, forward);
-        game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
-        game->camera.cam.projection = CAMERA_PERSPECTIVE;
-    }
-
-    else {
-
-        game->camera.yaw = 0.0f;
-        game->camera.pitch = -PI / 4.0f;
-
-        TileMap *tile_map = &game->level.tile_map;
-
-        u32 level_width, level_height;
-        get_tile_map_dimensions_in_pxl(tile_map, &level_width, &level_height);
-
-        game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 15.0f };
-        game->camera.cam.target = { level_width / 2.0f, 0.0f, level_height / 2.0f };
-        game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
-        game->camera.cam.projection = CAMERA_PERSPECTIVE;
-
+    if (game->camera.mode == GameCameraMode::Fixed)  {
         // TODO(Tejas): This is very temporary, just for testing purposes. 
-        Position new_pos = game->player.position;
+        Position new_pos = game->level.player.position;
 
         if (::IsKeyPressed(::KEY_W)) new_pos.y -= 1;
         if (::IsKeyPressed(::KEY_S)) new_pos.y += 1;
@@ -172,13 +209,12 @@ void game_update(Game *game, f32 delta_time) {
         if (::IsKeyPressed(::KEY_D)) new_pos.x += 1;
 
         if (new_pos.x >= 0 &&
-            new_pos.x < (i32)tile_map->width &&
+            new_pos.x < (i32)game->level.tile_map.width &&
             new_pos.y >= 0 &&
-            new_pos.y < (i32)tile_map->height) {
+            new_pos.y < (i32)game->level.tile_map.height) {
 
-            const uint tile_index = new_pos.y * tile_map->width + new_pos.x;
-            if (tile_map->tiles[tile_index] == TileType::Ground) {
-                game->player.position = new_pos;
+            if (is_tile_walkable(&game->level.tile_map, new_pos)) {
+                game->level.player.position = new_pos;
             }
         }
     }
@@ -197,7 +233,8 @@ void game_render(Game *game) {
 
         for (uint x = 0; x < game->level.tile_map.width; ++x) {
 
-            TileType tile_type = game->level.tile_map.tiles[y * game->level.tile_map.width + x];
+            // TileType tile_type = game->level.tile_map.tiles[y * game->level.tile_map.width + x];
+            TileType tile_type = get_tile_type_at(&game->level.tile_map, { x, y });
 
             ::Vector3 tile_position = { (f32)x * TILE_SIZE, 0.0f, (f32)y * TILE_SIZE };
 
@@ -223,13 +260,18 @@ void game_render(Game *game) {
 
                 } break;
             }
+
+            if (Position{ x, y } == game->level.level_end) {
+                tile_position.y = ground_height / 2.0f;
+                ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::RED);
+            }
         }
     }
 
     ::EndShaderMode();
 
-    ::Vector3 start_pos = { (f32)game->player.position.x * TILE_SIZE, 0.0f, (f32)game->player.position.y  * TILE_SIZE };
-    ::Vector3 end_pos   = { (f32)game->player.position.x * TILE_SIZE, (f32)TILE_SIZE, (f32)game->player.position.y  * TILE_SIZE };
+    ::Vector3 start_pos = { (f32)game->level.player.position.x * TILE_SIZE, 0.0f, (f32)game->level.player.position.y  * TILE_SIZE };
+    ::Vector3 end_pos   = { (f32)game->level.player.position.x * TILE_SIZE, (f32)TILE_SIZE, (f32)game->level.player.position.y  * TILE_SIZE };
 
     ::DrawCapsule(start_pos, end_pos, TILE_SIZE * 0.25f, 8, 16, ::YELLOW);
 
