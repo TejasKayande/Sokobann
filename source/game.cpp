@@ -4,6 +4,8 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#include <raygui.h>
+
 
 // NOTE(Tejas): This will be removed once we have a proper level loading system in place.
 namespace Levels {
@@ -122,29 +124,6 @@ static TileType get_tile_type_at(TileMap *tile_map, Position pos) {
     return tile_map->tiles[pos.y * tile_map->width + pos.x];
 }
 
-static void load_sample_level(Level *level) {
-
-    level->tile_map.width = 13;
-    level->tile_map.height = 10;
-    level->tile_map.tiles = {
-        TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-        TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
-    };
-
-    level->start_pos = { 1, 1 };
-    level->end_pos = { 11, 8 };
-
-    level->player.position = level->start_pos;
-}
-
 static void update_free_mode_camera(Game *game, f32 delta_time) {
 
     // TODO(Tejas): Do something about the cursor.
@@ -261,8 +240,11 @@ void game_init(Game *game) {
     game->camera.yaw = 0.0f;
     game->camera.pitch = 0.0f;
 
-    game->camera.cam.position = { 0.0f, 10.0f, 10.0f };
-    game->camera.cam.target = { 0.0f, 0.0f, 0.0f };
+    u32 level_width, level_height;
+    get_tile_map_dimensions_in_pxl(&game->level.tile_map, &level_width, &level_height);
+
+    game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 15.0f };
+    game->camera.cam.target = { (f32)game->level.player.position.x * TILE_SIZE, 0.0f, (f32)game->level.player.position.y * TILE_SIZE };
     game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
     game->camera.cam.fovy = 45.0f;
     game->camera.cam.projection = CAMERA_PERSPECTIVE;
@@ -334,7 +316,6 @@ void game_render(Game *game) {
 
                     tile_position.y = (ground_height / 2.0f) + (wall_height / 2.0f);
                     ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
-
                     ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
 
                 } break;
@@ -367,6 +348,21 @@ void game_render(Game *game) {
 
     ::EndMode3D();
 
-    ::DrawText(::TextFormat("X: %f.2, Y: %f.2, Z: %f.2", game->camera.cam.position.x, game->camera.cam.position.y, game->camera.cam.position.z), 10, 10, 20, ::WHITE);
-    ::DrawText(::TextFormat("FOV: %f.2", game->camera.cam.fovy), 10, 30, 20, ::WHITE);
+    int line_gap = 20;
+    ::DrawText(TextFormat("X: %.2f, Y: %.2f", game->camera.cam.position.x, game->camera.cam.position.y), 10, line_gap, 20, ::WHITE);
+    line_gap += line_gap;
+    ::DrawText(::TextFormat("FOV: %.2f", game->camera.cam.fovy), 10, line_gap, 20, ::WHITE);
+    line_gap += line_gap;
+
+    if (game->camera.mode == GameCameraMode::Free) {
+        ::DrawText("Camera Mode: Free (C to toggle)", 10, line_gap, 20, ::YELLOW);
+    } else {
+        ::DrawText("Camera Mode: Fixed (C to toggle)", 10, line_gap, 20, ::YELLOW);
+    }
+
+    line_gap += line_gap;
+
+    if (::GuiButton(Rectangle{ 10, (f32)line_gap, 80, 40}, "Next Level")) {
+        Levels::load_next_level(game);
+    }
 }
