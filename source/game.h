@@ -47,8 +47,8 @@ struct Level {
 
     // NOTE(Tejas): These are position where the player will spawn and where the
     // player will have to stand to complete the level.
-    Position level_start;
-    Position level_end; 
+    Position start_pos;
+    Position end_pos; 
 };
 
 // NOTE(Tejas): This is temp

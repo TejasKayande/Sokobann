@@ -4,6 +4,92 @@
 #include <raylib.h>
 #include <raymath.h>
 
+
+// NOTE(Tejas): This will be removed once we have a proper level loading system in place.
+namespace Levels {
+
+    constexpr uint NUMBER_OF_LEVELS = 3;
+    int current_level_index = -1;
+    Level levels[NUMBER_OF_LEVELS]  = { };
+    bool initialized = false;
+
+    void load_levels(void) {
+
+        levels[0].tile_map.width = 13;
+        levels[0].tile_map.height = 10;
+        levels[0].tile_map.tiles = {
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        };
+        levels[0].start_pos = { 1, 1 };
+        levels[0].end_pos = { 11, 8 };
+        levels[0].player.position = levels[0].start_pos;
+
+
+        levels[1].tile_map.width = 13;
+        levels[1].tile_map.height = 10;
+        levels[1].tile_map.tiles = {
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        };
+        levels[1].start_pos = { 1, 1 };
+        levels[1].end_pos = { 11, 8 };
+        levels[1].player.position = levels[1].start_pos;
+
+
+        levels[2].tile_map.width = 15;
+        levels[2].tile_map.height = 13;
+        levels[2].tile_map.tiles = {
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        };
+        levels[2].start_pos = { 1, 1 };
+        levels[2].end_pos = { 11, 8 };
+        levels[2].player.position = levels[2].start_pos;
+    }
+
+    void load_next_level(Game *game) {
+
+        if (!initialized) {
+            load_levels();
+            initialized = true;
+        }
+
+        current_level_index++;
+        if (current_level_index >= NUMBER_OF_LEVELS) {
+            current_level_index = 0;
+        }
+        game->level = levels[current_level_index];
+    }
+} // namespace Levels
+
 // TODO(Tejas): Temp!
 static ::Shader G_lighting_shader;
 static int G_light_direction_location;
@@ -53,10 +139,10 @@ static void load_sample_level(Level *level) {
         TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
     };
 
-    level->level_start = { 1, 1 };
-    level->level_end   = { 11, 8 };
+    level->start_pos = { 1, 1 };
+    level->end_pos = { 11, 8 };
 
-    level->player.position = level->level_start;
+    level->player.position = level->start_pos;
 }
 
 static void update_free_mode_camera(Game *game, f32 delta_time) {
@@ -166,7 +252,7 @@ static void update_camera(Game *game, f32 delta_time) {
 
 void game_init(Game *game) {
 
-    load_sample_level(&game->level);
+    Levels::load_next_level(game);
 
     game->camera.mode = GameCameraMode::Free;
     game->camera.speed = TILE_SIZE * 8.0f;
@@ -217,6 +303,10 @@ void game_update(Game *game, f32 delta_time) {
                 game->level.player.position = new_pos;
             }
         }
+
+        if (game->level.player.position == game->level.end_pos) {
+            Levels::load_next_level(game);
+        }
     }
 }
 
@@ -261,7 +351,7 @@ void game_render(Game *game) {
                 } break;
             }
 
-            if (Position{ x, y } == game->level.level_end) {
+            if (Position{ x, y } == game->level.end_pos) {
                 tile_position.y = ground_height / 2.0f;
                 ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::RED);
             }
