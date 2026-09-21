@@ -25,8 +25,8 @@ struct Position {
 
 enum class TileType : u8 {
     None = 0,
-    Wall,
     Ground,
+    Wall,
     Goal,
 };
 
