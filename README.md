@@ -1,10 +1,8 @@
-# Trace
+# Sokobann
 
-Trace is an independent game project developed under **Equitone Studios**.
+An implementation of the famous Sokoban game in Raylib.
 
-The project is currently in early development.
+This is just so I can understand how I want to architect things for my other game.
 
----
-
-**Equitone Studios**
+Tejas
 2026

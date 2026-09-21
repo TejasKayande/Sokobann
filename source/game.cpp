@@ -26,14 +26,17 @@ namespace Levels {
             TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
             TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
             TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Goal  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
             TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
-            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Goal  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
             TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
         };
         levels[0].start_pos = { 1, 1 };
-        levels[0].end_pos = { 11, 8 };
         levels[0].player.position = levels[0].start_pos;
+        levels[0].blocks = {
+            { { 3, 8 }, false },
+            { { 5, 2 }, false },
+        };
 
 
         levels[1].tile_map.width = 13;
@@ -51,9 +54,11 @@ namespace Levels {
             TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
         };
         levels[1].start_pos = { 1, 1 };
-        levels[1].end_pos = { 11, 8 };
         levels[1].player.position = levels[1].start_pos;
-
+        levels[1].blocks = {
+            { { 3, 6 }, false },
+            { { 1, 8 }, false },
+        };
 
         levels[2].tile_map.width = 15;
         levels[2].tile_map.height = 13;
@@ -73,8 +78,11 @@ namespace Levels {
             TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
         };
         levels[2].start_pos = { 1, 1 };
-        levels[2].end_pos = { 11, 8 };
         levels[2].player.position = levels[2].start_pos;
+        levels[2].blocks = {
+            { { 3, 6 }, false },
+            { { 1, 8 }, false },
+        };
 
         levels[3].tile_map.width = 17;
         levels[3].tile_map.height = 15;
@@ -96,9 +104,11 @@ namespace Levels {
             TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
         };
         levels[3].start_pos = { 1, 1 };
-        levels[3].end_pos = { 14, 13 };
         levels[3].player.position = levels[3].start_pos;
-
+        levels[3].blocks = {
+            { { 3, 6 }, false },
+            { { 1, 8 }, false },
+        };
 
         levels[4].tile_map.width = 19;
         levels[4].tile_map.height = 15;
@@ -120,8 +130,11 @@ namespace Levels {
             TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
         };
         levels[4].start_pos = { 1, 1 };
-        levels[4].end_pos = { 17, 13 };
         levels[4].player.position = levels[4].start_pos;
+        levels[3].blocks = {
+            { { 3, 6 }, false },
+            { { 1, 8 }, false },
+        };
     }
 
     void load_next_level(Game *game) {
@@ -151,16 +164,6 @@ static void get_tile_map_dimensions_in_pxl(TileMap *tile_map, u32 *out_width, u3
     *out_height = tile_map->height * TILE_SIZE;
 }
 
-static bool is_tile_walkable(TileMap *tile_map, Position pos) {
-
-    if (pos.x < 0 || pos.x >= (i32)tile_map->width ||
-        pos.y < 0 || pos.y >= (i32)tile_map->height) {
-        return false;
-    }
-
-    return tile_map->tiles[pos.y * tile_map->width + pos.x] == TileType::Ground;
-}
-
 static TileType get_tile_type_at(TileMap *tile_map, Position pos) {
 
     if (pos.x < 0 || pos.x >= (i32)tile_map->width ||
@@ -169,6 +172,56 @@ static TileType get_tile_type_at(TileMap *tile_map, Position pos) {
     }
 
     return tile_map->tiles[pos.y * tile_map->width + pos.x];
+}
+
+static bool is_tile_walkable(TileMap *tile_map, Position pos) {
+
+    if (pos.x < 0 || pos.x >= (i32)tile_map->width ||
+        pos.y < 0 || pos.y >= (i32)tile_map->height) {
+        return false;
+    }
+
+    return (get_tile_type_at(tile_map, pos) == TileType::Ground ||
+            get_tile_type_at(tile_map, pos) == TileType::Goal);
+}
+
+// NOTE(Tejas): This function respects the rules of Sokobann as it will not push
+// the block that cant be pushed. Returns true if the block was pushed.
+static bool push_block(Level *level, Block *block) {
+
+    int dx =  block->pos.x - level->player.position.x;
+    int dy = block->pos.y - level->player.position.y;
+
+    Position next_pos = { block->pos.x + dx, block->pos.y + dy };
+
+    if (!is_tile_walkable(&level->tile_map, next_pos)) {
+        return false;
+    }
+
+    block->pos = next_pos;
+    return true;
+}
+
+static bool does_tile_contain_block(Level *level, Position new_pos) {
+
+    for (Block &block : level->blocks) {
+        if (block.pos == new_pos) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool is_level_solved(Game *game) {
+
+    for (Block &block : game->level.blocks) {
+        if (get_tile_type_at(&game->level.tile_map, block.pos) != TileType::Goal) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 static void update_free_mode_camera(Game *game, f32 delta_time) {
@@ -328,14 +381,20 @@ void game_update(Game *game, f32 delta_time) {
             new_pos.y >= 0 &&
             new_pos.y < (i32)game->level.tile_map.height) {
 
-            if (is_tile_walkable(&game->level.tile_map, new_pos)) {
+            // TODO(Tejas): Refactor this...
+            if (is_tile_walkable(&game->level.tile_map, new_pos) && 
+                !does_tile_contain_block(&game->level, new_pos)) {
                 game->level.player.position = new_pos;
+            }
+
+            for (Block &block : game->level.blocks) {
+                if (block.pos == new_pos) {
+                    if (push_block(&game->level, &block)) game->level.player.position = new_pos;
+                }
             }
         }
 
-        if (game->level.player.position == game->level.end_pos) {
-            Levels::load_next_level(game);
-        }
+        if (is_level_solved(game)) Levels::load_next_level(game);
     }
 }
 
@@ -343,12 +402,7 @@ void game_render(Game *game) {
 
     if (game->camera.mode == GameCameraMode::Free) {
         ::HideCursor();
-
-        u32 level_width, level_height;
-        get_tile_map_dimensions_in_pxl(&game->level.tile_map, &level_width, &level_height);
-
-        ::SetMousePosition(level_width / 2, level_height / 2);
-
+        ::SetMousePosition(::GetScreenWidth() / 2, ::GetScreenHeight() / 2);
     } else {
         ::ShowCursor();
     }
@@ -386,16 +440,26 @@ void game_render(Game *game) {
 
                 } break;
 
+                case TileType::Goal: {
+
+                    tile_position.y = ground_height / 2.0f;
+                    ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::BROWN);
+
+                } break;
+
                 default: {
 
                 } break;
             }
-
-            if (Position{ x, y } == game->level.end_pos) {
-                tile_position.y = ground_height / 2.0f;
-                ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::RED);
-            }
         }
+    }
+
+    for (const auto &block : game->level.blocks) {
+
+        ::Vector3 block_position = { (f32)block.pos.x * TILE_SIZE, 0.0f, (f32)block.pos.y * TILE_SIZE };
+        block_position.y = (ground_height / 2.0f) + (TILE_SIZE / 2.0f);
+
+        ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
     }
 
     ::EndShaderMode();

@@ -8,7 +8,7 @@ auto main(int argc, char **argv) -> int {
 
     argc; argv; // NOTE(Tejas): Unused
 
-    ::InitWindow(800, 600, "Trace");
+    ::InitWindow(800, 600, "Sokobann");
     ::SetTargetFPS(60);
 
     Game game = { };

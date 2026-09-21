@@ -27,6 +27,7 @@ enum class TileType : u8 {
     None = 0,
     Wall,
     Ground,
+    Goal,
 };
 
 struct TileMap {
@@ -39,16 +40,21 @@ struct Player {
     Position position;
 };
 
+struct Block {
+    Position pos;
+    bool is_on_goal;
+};
+
 struct Level {
 
     TileMap tile_map;
-    
+
     Player player;
 
-    // NOTE(Tejas): These are position where the player will spawn and where the
-    // player will have to stand to complete the level.
+    std::vector<Block> blocks;
+
+    // NOTE(tejas): Player Spawn
     Position start_pos;
-    Position end_pos; 
 };
 
 // NOTE(Tejas): This is temp
