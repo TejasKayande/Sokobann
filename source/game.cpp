@@ -1,6 +1,8 @@
 
 #include "game.h"
 
+#include "assets.h"
+
 #include <raylib.h>
 #include <raymath.h>
 
@@ -215,7 +217,8 @@ static void update_fixed_mode_camera(Game *game, f32 delta_time) {
     u32 level_width, level_height;
     get_tile_map_dimensions_in_pxl(tile_map, &level_width, &level_height);
 
-    game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 15.0f };
+    game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 8.0f };
+
     game->camera.cam.target = { level_width / 2.0f, 0.0f, level_height / 2.0f };
     game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
     game->camera.cam.projection = CAMERA_PERSPECTIVE;
@@ -247,6 +250,8 @@ static void update_camera(Game *game, f32 delta_time) {
 }
 
 void game_init(Game *game) {
+
+    Assets::init();
 
     load_next_level(&game->level);
 
@@ -345,14 +350,19 @@ void game_render(Game *game) {
                 case TileType::Wall: {
 
                     tile_position.y = (ground_height / 2.0f) + (wall_height / 2.0f);
-                    ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
-                    ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
+
+                    ::DrawModel(Assets::wall_model, tile_position, 1.0f, ::WHITE);
+                    // ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
+                    // ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
+
 
                 } break;
 
                 case TileType::Ground: {
 
                     tile_position.y = ground_height / 2.0f;
+
+                    // ::DrawModel(Assets::ground_model, tile_position, 1.0f, ::WHITE);
                     ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::LIGHTGRAY);
 
                 } break;
@@ -376,7 +386,8 @@ void game_render(Game *game) {
         ::Vector3 block_position = { (f32)block.pos.x * TILE_SIZE, 0.0f, (f32)block.pos.y * TILE_SIZE };
         block_position.y = (ground_height / 2.0f) + (TILE_SIZE / 2.0f);
 
-        ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
+        ::DrawModel(Assets::box_model, block_position, 1.0f, ::WHITE);
+        // ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
     }
 
     ::EndShaderMode();
