@@ -10,7 +10,7 @@
 // NOTE(Tejas): This will be removed once we have a proper level loading system in place.
 namespace Levels {
 
-    constexpr uint NUMBER_OF_LEVELS = 3;
+    constexpr uint NUMBER_OF_LEVELS = 5;
     int current_level_index = -1;
     Level levels[NUMBER_OF_LEVELS]  = { };
     bool initialized = false;
@@ -75,6 +75,53 @@ namespace Levels {
         levels[2].start_pos = { 1, 1 };
         levels[2].end_pos = { 11, 8 };
         levels[2].player.position = levels[2].start_pos;
+
+        levels[3].tile_map.width = 17;
+        levels[3].tile_map.height = 15;
+        levels[3].tile_map.tiles = {
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        };
+        levels[3].start_pos = { 1, 1 };
+        levels[3].end_pos = { 14, 13 };
+        levels[3].player.position = levels[3].start_pos;
+
+
+        levels[4].tile_map.width = 19;
+        levels[4].tile_map.height = 15;
+        levels[4].tile_map.tiles = {
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Wall  , TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall  , TileType::Wall  , TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Ground, TileType::Wall,
+            TileType::Wall, TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall  , TileType::Wall,
+        };
+        levels[4].start_pos = { 1, 1 };
+        levels[4].end_pos = { 17, 13 };
+        levels[4].player.position = levels[4].start_pos;
     }
 
     void load_next_level(Game *game) {
@@ -272,9 +319,9 @@ void game_update(Game *game, f32 delta_time) {
         Position new_pos = game->level.player.position;
 
         if (::IsKeyPressed(::KEY_W)) new_pos.y -= 1;
-        if (::IsKeyPressed(::KEY_S)) new_pos.y += 1;
-        if (::IsKeyPressed(::KEY_A)) new_pos.x -= 1;
-        if (::IsKeyPressed(::KEY_D)) new_pos.x += 1;
+        else if (::IsKeyPressed(::KEY_S)) new_pos.y += 1;
+        else if (::IsKeyPressed(::KEY_A)) new_pos.x -= 1;
+        else if (::IsKeyPressed(::KEY_D)) new_pos.x += 1;
 
         if (new_pos.x >= 0 &&
             new_pos.x < (i32)game->level.tile_map.width &&
@@ -293,6 +340,18 @@ void game_update(Game *game, f32 delta_time) {
 }
 
 void game_render(Game *game) {
+
+    if (game->camera.mode == GameCameraMode::Free) {
+        ::HideCursor();
+
+        u32 level_width, level_height;
+        get_tile_map_dimensions_in_pxl(&game->level.tile_map, &level_width, &level_height);
+
+        ::SetMousePosition(level_width / 2, level_height / 2);
+
+    } else {
+        ::ShowCursor();
+    }
 
     ::BeginMode3D(game->camera.cam);
 
