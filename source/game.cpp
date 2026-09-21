@@ -60,6 +60,22 @@ static void load_level_from_txt(Level *level, const char *txt) {
     }
 }
 
+static void load_next_level(Level *level) {
+
+    static int current_level = 0;
+
+    char level_file[256];
+    std::snprintf(level_file, sizeof(level_file), "assets/levels/level_%d.txt", current_level);
+
+    load_level_from_txt(level, level_file);
+
+    ++current_level;
+
+    if (current_level > 5) {
+        current_level = 0;
+    }
+}
+
 static void get_tile_map_dimensions_in_pxl(TileMap *tile_map, u32 *out_width, u32 *out_height) {
 
     *out_width = tile_map->width * TILE_SIZE;
@@ -83,25 +99,8 @@ static bool is_tile_walkable(TileMap *tile_map, Position pos) {
         return false;
     }
 
-    return (get_tile_type_at(tile_map, pos) == TileType::Ground ||
-            get_tile_type_at(tile_map, pos) == TileType::Goal);
-}
-
-// NOTE(Tejas): This function respects the rules of Sokobann as it will not push
-// the block that cant be pushed. Returns true if the block was pushed.
-static bool push_block(Level *level, Block *block) {
-
-    int dx = block->pos.x - level->player.position.x;
-    int dy = block->pos.y - level->player.position.y;
-
-    Position next_pos = { block->pos.x + dx, block->pos.y + dy };
-
-    if (!is_tile_walkable(&level->tile_map, next_pos)) {
-        return false;
-    }
-
-    block->pos = next_pos;
-    return true;
+    // NOTE(Tejas): For now the only unwalkable tile is the wall.
+    return (get_tile_type_at(tile_map, pos) != TileType::Wall);
 }
 
 static bool does_tile_contain_block(Level *level, Position new_pos) {
@@ -113,6 +112,22 @@ static bool does_tile_contain_block(Level *level, Position new_pos) {
     }
 
     return false;
+}
+
+// NOTE(Tejas): This function respects the rules of Sokobann as it will not push
+// the block that cant be pushed. Returns true if the block was pushed.
+static bool push_block(Level *level, Block *block) {
+
+    int dx = block->pos.x - level->player.position.x;
+    int dy = block->pos.y - level->player.position.y;
+
+    Position next_pos = { block->pos.x + dx, block->pos.y + dy };
+
+    if (!is_tile_walkable(&level->tile_map, next_pos)) return false;
+    if (does_tile_contain_block(level, next_pos)) return false;
+
+    block->pos = next_pos;
+    return true;
 }
 
 static bool is_level_solved(Game *game) {
@@ -233,7 +248,7 @@ static void update_camera(Game *game, f32 delta_time) {
 
 void game_init(Game *game) {
 
-    load_level_from_txt(&game->level, "assets/levels/level_0.txt");
+    load_next_level(&game->level);
 
     game->camera.mode = GameCameraMode::Free;
     game->camera.speed = TILE_SIZE * 8.0f;
@@ -296,7 +311,7 @@ void game_update(Game *game, f32 delta_time) {
             }
         }
 
-        if (is_level_solved(game)) load_level_from_txt(&game->level, "assets/levels/level_0.txt");
+        if (is_level_solved(game)) load_next_level(&game->level);
     }
 }
 
