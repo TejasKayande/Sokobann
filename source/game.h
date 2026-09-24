@@ -66,8 +66,12 @@ enum class GameCameraMode : u8 {
 struct GameCamera {
     // NOTE(Tejas): maybe instead of this we can just store the data and build
     // the Ray::Camera3D when needed
-    ::Camera3D cam;
     GameCameraMode mode;
+
+    ::Vector3 position;
+    ::Vector3 target;
+
+    f32 fov;
 
     f32 speed;
     f32 mouse_sensitivity;

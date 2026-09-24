@@ -62,9 +62,15 @@ static void load_level_from_txt(Level *level, const char *txt) {
     }
 }
 
-static void load_next_level(Level *level) {
+static void load_next_level(Level *level, bool reset = false) {
 
     static int current_level = 0;
+
+    // TODO(Tejas): I know this will not be called at the start!
+    if (reset) {
+        if (current_level == 0) current_level = 5;
+        else current_level--;
+    }
 
     char level_file[256];
     std::snprintf(level_file, sizeof(level_file), "assets/levels/level_%d.txt", current_level);
@@ -120,8 +126,8 @@ static bool does_tile_contain_block(Level *level, Position new_pos) {
 // the block that cant be pushed. Returns true if the block was pushed.
 static bool push_block(Level *level, Block *block) {
 
-    int dx = block->pos.x - level->player.position.x;
-    int dy = block->pos.y - level->player.position.y;
+    int dx = (int)block->pos.x - (int)level->player.position.x;
+    int dy = (int)block->pos.y - (int)level->player.position.y;
 
     Position next_pos = { block->pos.x + dx, block->pos.y + dy };
 
@@ -129,15 +135,18 @@ static bool push_block(Level *level, Block *block) {
     if (does_tile_contain_block(level, next_pos)) return false;
 
     block->pos = next_pos;
+    if (get_tile_type_at(&level->tile_map, block->pos) == TileType::Goal) {
+        block->is_on_goal = true;
+    } else {
+        block->is_on_goal = false;
+    }
     return true;
 }
 
 static bool is_level_solved(Game *game) {
 
     for (Block &block : game->level.blocks) {
-        if (get_tile_type_at(&game->level.tile_map, block.pos) != TileType::Goal) {
-            return false;
-        }
+        if (!block.is_on_goal) return false;
     }
 
     return true;
@@ -199,15 +208,13 @@ static void update_free_mode_camera(Game *game, f32 delta_time) {
         movement = ::Vector3Normalize(movement);
         movement = ::Vector3Scale(movement, game->camera.speed * delta_time);
 
-        game->camera.cam.position = ::Vector3Add(game->camera.cam.position, movement);
+        game->camera.position = ::Vector3Add(game->camera.position, movement);
     }
 
-    game->camera.cam.target = ::Vector3Add(game->camera.cam.position, forward);
-    game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
-    game->camera.cam.projection = CAMERA_PERSPECTIVE;
+    game->camera.target = ::Vector3Add(game->camera.position, forward);
 }
 
-static void update_fixed_mode_camera(Game *game, f32 delta_time) {
+static void update_fixed_mode_camera(Game *game) {
 
     game->camera.yaw = 0.0f;
     game->camera.pitch = -PI / 4.0f;
@@ -217,11 +224,8 @@ static void update_fixed_mode_camera(Game *game, f32 delta_time) {
     u32 level_width, level_height;
     get_tile_map_dimensions_in_pxl(tile_map, &level_width, &level_height);
 
-    game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 8.0f };
-
-    game->camera.cam.target = { level_width / 2.0f, 0.0f, level_height / 2.0f };
-    game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
-    game->camera.cam.projection = CAMERA_PERSPECTIVE;
+    game->camera.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 8.0f };
+    game->camera.target = { level_width / 2.0f, 0.0f, level_height / 2.0f };
 }
 
 static void update_camera(Game *game, f32 delta_time) {
@@ -232,7 +236,7 @@ static void update_camera(Game *game, f32 delta_time) {
             game->camera.mode = GameCameraMode::Fixed;
         } else {
             game->camera.mode = GameCameraMode::Free;
-            Vector3 direction = Vector3Subtract(game->camera.cam.target, game->camera.cam.position);
+            Vector3 direction = Vector3Subtract(game->camera.target, game->camera.position);
             direction = Vector3Normalize(direction);
 
             game->camera.yaw = atan2f(direction.x, direction.z);
@@ -241,12 +245,12 @@ static void update_camera(Game *game, f32 delta_time) {
     }
 
     const f32 scroll = ::GetMouseWheelMove();
-    if (scroll != 0.0f) game->camera.cam.fovy -= scroll * 5.0f;
-    if (game->camera.cam.fovy < 20.0f) game->camera.cam.fovy = 20.0f;
-    if (game->camera.cam.fovy > 90.0f) game->camera.cam.fovy = 90.0f;
+    if (scroll != 0.0f) game->camera.fov -= scroll * 5.0f;
+    if (game->camera.fov < 20.0f) game->camera.fov = 20.0f;
+    if (game->camera.fov > 90.0f) game->camera.fov = 90.0f;
 
     if (game->camera.mode == GameCameraMode::Free) update_free_mode_camera(game, delta_time);
-    else update_fixed_mode_camera(game, delta_time);
+    else update_fixed_mode_camera(game);
 }
 
 void game_init(Game *game) {
@@ -265,11 +269,9 @@ void game_init(Game *game) {
     u32 level_width, level_height;
     get_tile_map_dimensions_in_pxl(&game->level.tile_map, &level_width, &level_height);
 
-    game->camera.cam.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 15.0f };
-    game->camera.cam.target = { (f32)game->level.player.position.x * TILE_SIZE, 0.0f, (f32)game->level.player.position.y * TILE_SIZE };
-    game->camera.cam.up = { 0.0f, 1.0f, 0.0f };
-    game->camera.cam.fovy = 45.0f;
-    game->camera.cam.projection = CAMERA_PERSPECTIVE;
+    game->camera.position = { level_width / 2.0f, TILE_SIZE * 15.0f, (level_height / 2.0f) + TILE_SIZE * 15.0f };
+    game->camera.target = { (f32)game->level.player.position.x * TILE_SIZE, 0.0f, (f32)game->level.player.position.y * TILE_SIZE };
+    game->camera.fov = 45.0f;
 
     G_lighting_shader = ::LoadShader("assets/shader/shadow.vs", "assets/shader/shadow.fs");
     G_light_direction_location = ::GetShaderLocation(G_lighting_shader, "lightDirection");
@@ -286,6 +288,10 @@ void game_init(Game *game) {
 }
 
 void game_update(Game *game, f32 delta_time) {
+
+    if (::IsKeyPressed(::KEY_R)) {
+        load_next_level(&game->level, true);
+    }
 
     update_camera(game, delta_time);
 
@@ -329,7 +335,13 @@ void game_render(Game *game) {
         ::ShowCursor();
     }
 
-    ::BeginMode3D(game->camera.cam);
+    ::Camera3D cam = { };
+    cam.position = game->camera.position;
+    cam.target = game->camera.target;
+    cam.up = { 0.0f, 1.0f, 0.0f };
+    cam.fovy = game->camera.fov;
+
+    ::BeginMode3D(cam);
 
     ::BeginShaderMode(G_lighting_shader);
 
@@ -351,9 +363,9 @@ void game_render(Game *game) {
 
                     tile_position.y = (ground_height / 2.0f) + (wall_height / 2.0f);
 
-                    ::DrawModel(Assets::wall_model, tile_position, 1.0f, ::WHITE);
-                    // ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
-                    // ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
+                    // ::DrawModel(Assets::wall_model, tile_position, 1.0f, ::WHITE);
+                    ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
+                    ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
 
 
                 } break;
@@ -386,8 +398,8 @@ void game_render(Game *game) {
         ::Vector3 block_position = { (f32)block.pos.x * TILE_SIZE, 0.0f, (f32)block.pos.y * TILE_SIZE };
         block_position.y = (ground_height / 2.0f) + (TILE_SIZE / 2.0f);
 
-        ::DrawModel(Assets::box_model, block_position, 1.0f, ::WHITE);
-        // ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
+        // ::DrawModel(Assets::box_model, block_position, 1.0f, ::WHITE);
+        ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
     }
 
     ::EndShaderMode();
@@ -400,9 +412,9 @@ void game_render(Game *game) {
     ::EndMode3D();
 
     int line_gap = 20;
-    ::DrawText(TextFormat("X: %.2f, Y: %.2f", game->camera.cam.position.x, game->camera.cam.position.y), 10, line_gap, 20, ::WHITE);
+    ::DrawText(TextFormat("X: %.2f, Y: %.2f", game->camera.position.x, game->camera.position.y), 10, line_gap, 20, ::WHITE);
     line_gap += line_gap;
-    ::DrawText(::TextFormat("FOV: %.2f", game->camera.cam.fovy), 10, line_gap, 20, ::WHITE);
+    ::DrawText(::TextFormat("FOV: %.2f", game->camera.fov), 10, line_gap, 20, ::WHITE);
     line_gap += line_gap;
 
     if (game->camera.mode == GameCameraMode::Free) {
