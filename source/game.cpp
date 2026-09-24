@@ -253,6 +253,88 @@ static void update_camera(Game *game, f32 delta_time) {
     else update_fixed_mode_camera(game);
 }
 
+static void render_level(Game *game, f32 ground_height, f32 wall_height) {
+
+    for (uint y = 0; y < game->level.tile_map.height; ++y) {
+
+        for (uint x = 0; x < game->level.tile_map.width; ++x) {
+
+            // TileType tile_type = game->level.tile_map.tiles[y * game->level.tile_map.width + x];
+            TileType tile_type = get_tile_type_at(&game->level.tile_map, { x, y });
+
+            ::Vector3 tile_position = { (f32)x * TILE_SIZE, 0.0f, (f32)y * TILE_SIZE };
+
+            switch (tile_type) {
+
+                case TileType::Wall: {
+
+                    tile_position.y = (ground_height / 2.0f) + (wall_height / 2.0f);
+
+                    // ::DrawModel(Assets::wall_model, tile_position, 1.0f, ::WHITE);
+                    ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
+                    ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
+
+
+                } break;
+
+                case TileType::Ground: {
+
+                    tile_position.y = ground_height / 2.0f;
+
+                    // ::DrawModel(Assets::ground_model, tile_position, 1.0f, ::WHITE);
+                    ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::LIGHTGRAY);
+
+                } break;
+
+                case TileType::Goal: {
+
+                    tile_position.y = ground_height / 2.0f;
+                    ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::BROWN);
+
+                } break;
+
+                default: {
+
+                } break;
+            }
+        }
+    }
+
+    for (const auto &block : game->level.blocks) {
+
+        ::Vector3 block_position = { (f32)block.pos.x * TILE_SIZE, 0.0f, (f32)block.pos.y * TILE_SIZE };
+        block_position.y = (ground_height / 2.0f) + (TILE_SIZE / 2.0f);
+
+        // ::DrawModel(Assets::box_model, block_position, 1.0f, ::WHITE);
+        ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
+    }
+}
+
+static void render_player(Game *game) {
+
+    ::Vector3 start_pos = { (f32)game->level.player.position.x * TILE_SIZE, 0.0f, (f32)game->level.player.position.y  * TILE_SIZE };
+    ::Vector3 end_pos   = { (f32)game->level.player.position.x * TILE_SIZE, (f32)TILE_SIZE, (f32)game->level.player.position.y  * TILE_SIZE };
+
+    ::DrawCapsule(start_pos, end_pos, TILE_SIZE * 0.25f, 8, 16, ::YELLOW);
+}
+
+static void render_ui(Game *game) {
+
+    int line_gap = 20;
+    ::DrawText(TextFormat("X: %.2f, Y: %.2f", game->camera.position.x, game->camera.position.y), 10, line_gap, 20, ::WHITE);
+    line_gap += line_gap;
+    ::DrawText(::TextFormat("FOV: %.2f", game->camera.fov), 10, line_gap, 20, ::WHITE);
+    line_gap += line_gap;
+
+    if (game->camera.mode == GameCameraMode::Free) {
+        ::DrawText("Camera Mode: Free (C to toggle)", 10, line_gap, 20, ::YELLOW);
+    } else {
+        ::DrawText("Camera Mode: Fixed (C to toggle)", 10, line_gap, 20, ::YELLOW);
+    }
+
+    line_gap += line_gap;
+}
+
 void game_init(Game *game) {
 
     Assets::init();
@@ -337,94 +419,25 @@ void game_render(Game *game) {
 
     ::Camera3D cam = { };
     cam.position = game->camera.position;
-    cam.target = game->camera.target;
-    cam.up = { 0.0f, 1.0f, 0.0f };
-    cam.fovy = game->camera.fov;
+    cam.target   = game->camera.target;
+    cam.up       = { 0.0f, 1.0f, 0.0f };
+    cam.fovy     = game->camera.fov;
 
     ::BeginMode3D(cam);
+    {
+        ::BeginShaderMode(G_lighting_shader);
+        {
+            const f32 ground_height = 0.1f;
+            const f32 wall_height = TILE_SIZE;
 
-    ::BeginShaderMode(G_lighting_shader);
+            render_level(game, ground_height, wall_height);
 
-    const f32 ground_height = 0.1f;
-    const f32 wall_height = TILE_SIZE;
-
-    for (uint y = 0; y < game->level.tile_map.height; ++y) {
-
-        for (uint x = 0; x < game->level.tile_map.width; ++x) {
-
-            // TileType tile_type = game->level.tile_map.tiles[y * game->level.tile_map.width + x];
-            TileType tile_type = get_tile_type_at(&game->level.tile_map, { x, y });
-
-            ::Vector3 tile_position = { (f32)x * TILE_SIZE, 0.0f, (f32)y * TILE_SIZE };
-
-            switch (tile_type) {
-
-                case TileType::Wall: {
-
-                    tile_position.y = (ground_height / 2.0f) + (wall_height / 2.0f);
-
-                    // ::DrawModel(Assets::wall_model, tile_position, 1.0f, ::WHITE);
-                    ::DrawCube(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::GRAY);
-                    ::DrawCubeWires(tile_position, TILE_SIZE, wall_height, TILE_SIZE, ::BLACK);
-
-
-                } break;
-
-                case TileType::Ground: {
-
-                    tile_position.y = ground_height / 2.0f;
-
-                    // ::DrawModel(Assets::ground_model, tile_position, 1.0f, ::WHITE);
-                    ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::LIGHTGRAY);
-
-                } break;
-
-                case TileType::Goal: {
-
-                    tile_position.y = ground_height / 2.0f;
-                    ::DrawCube(tile_position, TILE_SIZE, ground_height, TILE_SIZE, ::BROWN);
-
-                } break;
-
-                default: {
-
-                } break;
-            }
         }
+        ::EndShaderMode();
+
+        render_player(game);
     }
-
-    for (const auto &block : game->level.blocks) {
-
-        ::Vector3 block_position = { (f32)block.pos.x * TILE_SIZE, 0.0f, (f32)block.pos.y * TILE_SIZE };
-        block_position.y = (ground_height / 2.0f) + (TILE_SIZE / 2.0f);
-
-        // ::DrawModel(Assets::box_model, block_position, 1.0f, ::WHITE);
-        ::DrawCube(block_position, TILE_SIZE, TILE_SIZE, TILE_SIZE, ::RED);
-    }
-
-    ::EndShaderMode();
-
-    ::Vector3 start_pos = { (f32)game->level.player.position.x * TILE_SIZE, 0.0f, (f32)game->level.player.position.y  * TILE_SIZE };
-    ::Vector3 end_pos   = { (f32)game->level.player.position.x * TILE_SIZE, (f32)TILE_SIZE, (f32)game->level.player.position.y  * TILE_SIZE };
-
-    ::DrawCapsule(start_pos, end_pos, TILE_SIZE * 0.25f, 8, 16, ::YELLOW);
-
     ::EndMode3D();
 
-    int line_gap = 20;
-    ::DrawText(TextFormat("X: %.2f, Y: %.2f", game->camera.position.x, game->camera.position.y), 10, line_gap, 20, ::WHITE);
-    line_gap += line_gap;
-    ::DrawText(::TextFormat("FOV: %.2f", game->camera.fov), 10, line_gap, 20, ::WHITE);
-    line_gap += line_gap;
-
-    if (game->camera.mode == GameCameraMode::Free) {
-        ::DrawText("Camera Mode: Free (C to toggle)", 10, line_gap, 20, ::YELLOW);
-    } else {
-        ::DrawText("Camera Mode: Fixed (C to toggle)", 10, line_gap, 20, ::YELLOW);
-    }
-
-    line_gap += line_gap;
-
-    // if (::GuiButton(Rectangle{ 10, (f32)line_gap, 80, 40}, "Next Level")) {
-    // }
+    render_ui(game);
 }
