@@ -16,18 +16,19 @@ pushd bin
 echo Compiling Dependencies...
 
 pushd ..\dependencies\raygui 
-if not exist "lib" (mkdir lib)
-pushd lib
+if not exist "lib" (
+    mkdir lib
+    pushd lib
 
-call cl /nologo /c /O2 /DNDEBUG /MD /I"..\..\raylib\include" ..\include\raygui.c /Fo:raygui.obj 
-call lib /nologo raygui.obj /OUT:raygui.lib
+    call cl /nologo /c /O2 /DNDEBUG /MD /I"..\..\raylib\include" ..\include\raygui.c /Fo:raygui.obj 
+    call lib /nologo raygui.obj /OUT:raygui.lib
 
-popd
+    popd
+)
 popd
 
 echo Done.
 @REM ----------------------------------------------------------
-
 
 
 set FLAGS=/std:c++20 /FC /EHsc /MP /Zi /W4 /MD
